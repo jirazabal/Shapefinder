@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 {
     read_args(argc, argv);
 
-    string imgPath = args["-i"] + ".png";
+    string imgPath = "images/" + args["-i"] + ".ppm";
     //cout << "" << imgPath.c_str() << endl;
 
     IplImage *img = cvLoadImage(imgPath.c_str());
