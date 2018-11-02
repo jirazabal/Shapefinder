@@ -17,6 +17,48 @@ int main(int argc, char *argv[])
 
     string imgPath = "images/" + args["-i"] + ".ppm";
     //cout << "" << imgPath.c_str() << endl;
+    string hexstring = args["-c"];
+    int redval = 0;
+    int greenval = 0;
+    int blueval = 0;
+    cout << "Hex" << endl;
+    //cout << hex.front() << endl;
+    cout << hexstring << endl;
+    cout << hexstring.substr(0,2) << endl;
+    CvScalar usecolor;
+    if (hexstring.substr(0,2) == "0x"){
+        if (hexstring.length() != 8){
+            cout << "Hex should be 3 bytes, one byte each representing a color value" << endl;
+            exit(1);
+        }
+        cout << "You have inputed a proper hex value" << endl;
+        int hexval = 0;
+        hexval = stoi(hexstring);
+        cout << hexval << endl;
+
+        //redval = ((hex >> 16) & 0xFF) / 255
+        //greenval = ((hex >> 8) & 0xFF) / 255
+        //blueval = (hex & 0xFF) / 255
+        //cout << redval << endl;
+        //cout << greenval << endl;
+        //cout << blueval << endl;
+        redval = 100;
+        greenval = 200;
+        blueval = 100;
+        usecolor = cvScalar(redval, greenval, blueval);
+    } else if (hexstring == "blue"){
+        usecolor = cvScalar(255, 0, 0);
+    } else if (hexstring == "green"){
+        usecolor = cvScalar(0, 255, 0);
+    } else if (hexstring == "red"){
+        usecolor = cvScalar(0, 0, 255);
+    } else if (hexstring == "black"){
+        usecolor = cvScalar(255, 255, 255);
+    } else {
+        cout << "Invalid Input: Please use either red, green, blue, black, or a hex value such as 0xFFFFFF for the -c flag" << endl;
+        exit(1);
+    }
+
 
     IplImage *img = cvLoadImage(imgPath.c_str());
 
@@ -56,9 +98,9 @@ int main(int argc, char *argv[])
             }
 
             //drawing lines around the triangle
-            cvLine(img, *pt[0], *pt[1], cvScalar(255, 0, 0), 4);
-            cvLine(img, *pt[1], *pt[2], cvScalar(255, 0, 0), 4);
-            cvLine(img, *pt[2], *pt[0], cvScalar(255, 0, 0), 4);
+            cvLine(img, *pt[0], *pt[1], usecolor, 4);
+            cvLine(img, *pt[1], *pt[2], usecolor, 4);
+            cvLine(img, *pt[2], *pt[0], usecolor, 4);
         }
 
         //if there are 4 vertices in the contour(It should be a rectangle/square)
@@ -72,10 +114,10 @@ int main(int argc, char *argv[])
             }
 
             //drawing lines around the rectangle/square
-            cvLine(img, *pt[0], *pt[1], cvScalar(0, 255, 0), 4);
-            cvLine(img, *pt[1], *pt[2], cvScalar(0, 255, 0), 4);
-            cvLine(img, *pt[2], *pt[3], cvScalar(0, 255, 0), 4);
-            cvLine(img, *pt[3], *pt[0], cvScalar(0, 255, 0), 4);
+            cvLine(img, *pt[0], *pt[1], usecolor, 4);
+            cvLine(img, *pt[1], *pt[2], usecolor, 4);
+            cvLine(img, *pt[2], *pt[3], usecolor, 4);
+            cvLine(img, *pt[3], *pt[0], usecolor, 4);
         }
 
         //obtain the next contour
