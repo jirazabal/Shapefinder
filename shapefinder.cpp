@@ -21,8 +21,8 @@ int main(int argc, char *argv[])
     IplImage *img = cvLoadImage(imgPath.c_str());
 
     //show the original image
-    cvNamedWindow("Raw");
-    cvShowImage("Raw", img);
+    cvNamedWindow("Original Image");
+    cvShowImage("Original Image", img);
 
     //converting the original image into grayscale
     IplImage *imgGrayScale = cvCreateImage(cvGetSize(img), 8, 1);
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
             cvLine(img, *pt[2], *pt[0], cvScalar(255, 0, 0), 4);
         }
 
-        //if there are 4 vertices in the contour(It should be a quadrilateral)
+        //if there are 4 vertices in the contour(It should be a rectangle/square)
         else if (result->total == 4)
         {
             //iterating through each point
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
                 pt[i] = (CvPoint *)cvGetSeqElem(result, i);
             }
 
-            //drawing lines around the quadrilateral
+            //drawing lines around the rectangle/square
             cvLine(img, *pt[0], *pt[1], cvScalar(0, 255, 0), 4);
             cvLine(img, *pt[1], *pt[2], cvScalar(0, 255, 0), 4);
             cvLine(img, *pt[2], *pt[3], cvScalar(0, 255, 0), 4);
@@ -99,11 +99,23 @@ int main(int argc, char *argv[])
         cvCircle(img, cvPoint(cvRound(p[0]), cvRound(p[1])),
                  cvRound(p[2]), CV_RGB(0, 255, 255), 3, 8, 0);
     }
-    //show the image in which identified shapes are marked
-    cvNamedWindow("New Images");
-    cvShowImage("New Images", img);
+    
+    //saves image
+    if (args.find("-o") == args.end())
+    {
+        cout << "No output file specified!" << endl;
+    }
+    else 
+    {
+        string outputName = args["-o"] + ".png";
+        Mat src;
+        src = cvarrToMat(img);
+        imshow("src", src);
+        waitKey(0);
+        cvReleaseImage(&img);
+        imwrite(outputName, src);
+    }
 
-    cvWaitKey(0); //wait for a key press
 
     //cleaning up
     cvDestroyAllWindows();
