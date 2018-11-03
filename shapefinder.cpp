@@ -11,12 +11,14 @@ using namespace std;
 map<string, string> args;
 void read_args(int argc, char *argv[]);
 
-bool isHex(string hexstr){
-    for (auto it = hexstr.begin(); it != hexstr.end(); it++){
-        if (!isxdigit(*it)){
+bool isHex(string hexstr)
+{
+    for (auto it = hexstr.begin(); it != hexstr.end(); it++)
+    {
+        if (!isxdigit(*it))
+        {
             return false;
         }
-        
     }
     return true;
 }
@@ -27,26 +29,35 @@ int main(int argc, char *argv[])
     string imgPath = "images/" + args["-i"] + ".ppm";
     //cout << "" << imgPath.c_str() << endl;
     string hexstring = args["-c"];
+    string shapetocolor = args["-s"];
+    if (!(shapetocolor == "rectangle" || shapetocolor == "triangle" || shapetocolor == "circle"))
+    {
+        cout << "invalid shape: program only accepts rectanlge triangle or circle" << endl;
+        exit(1);
+    }
     int redval = 0;
     int greenval = 0;
     int blueval = 0;
     cout << "Hex" << endl;
     //cout << hex.front() << endl;
     cout << hexstring << endl;
-    cout << hexstring.substr(0,2) << endl;
+    cout << hexstring.substr(0, 2) << endl;
     CvScalar usecolor;
-    if (hexstring.substr(0,2) == "0x"){
-        if (hexstring.length() != 8){
+    if (hexstring.substr(0, 2) == "0x")
+    {
+        if (hexstring.length() != 8)
+        {
             cout << "Hex should be 3 bytes, one byte each representing a color value" << endl;
             exit(1);
         }
         int hexval = 0;
         string newhexstring = hexstring.substr(2);
-        string rhex = hexstring.substr(2,2);
-        string ghex = hexstring.substr(4,2);
+        string rhex = hexstring.substr(2, 2);
+        string ghex = hexstring.substr(4, 2);
         string bhex = hexstring.substr(6);
         bool validhex = isHex(newhexstring);
-        if (!validhex){
+        if (!validhex)
+        {
             cout << "Ivalid Hex, Hex should only have values [0-9a-fA-F]" << endl;
             exit(1);
         }
@@ -60,7 +71,7 @@ int main(int argc, char *argv[])
         stringstream().swap(strstream);
         strstream << bhex;
         strstream >> std::hex >> blueval;
-        
+
         //redval = ((0xb6feaa >> 16) & 255) / 255;
         //greenval = ((hexval >> 8) & 0xFF) / 255;
         //blueval = (hexval & 0xFF) / 255;
@@ -71,19 +82,34 @@ int main(int argc, char *argv[])
         //greenval = 200;
         //blueval = 100;
         usecolor = cvScalar(redval, greenval, blueval);
-    } else if (hexstring == "blue"){
+    }
+    else if (hexstring == "blue")
+    {
+        blueval = 255;
         usecolor = cvScalar(255, 0, 0);
-    } else if (hexstring == "green"){
+    }
+    else if (hexstring == "green")
+    {
+        greenval = 255;
         usecolor = cvScalar(0, 255, 0);
-    } else if (hexstring == "red"){
+    }
+    else if (hexstring == "red")
+    {
+        redval = 255;
         usecolor = cvScalar(0, 0, 255);
-    } else if (hexstring == "black"){
+    }
+    else if (hexstring == "black")
+    {
+        blueval = 255;
+        greenval = 255;
+        redval = 255;
         usecolor = cvScalar(255, 255, 255);
-    } else {
+    }
+    else
+    {
         cout << "Invalid Input: Please use either red, green, blue, black, or a hex value such as 0xFFFFFF for the -c flag" << endl;
         exit(1);
     }
-
 
     IplImage *img = cvLoadImage(imgPath.c_str());
 
@@ -107,72 +133,84 @@ int main(int argc, char *argv[])
     cvFindContours(imgGrayScale, storage, &contours, sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 
     //iterating through each contour
-    while (contours)
+    if (shapetocolor == "triangle" || shapetocolor == "rectangle")
     {
-        //obtain a sequence of points of contour, pointed by the variable 'contour'
-        result = cvApproxPoly(contours, sizeof(CvContour), storage, CV_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.02, 0);
-
-        //if there are 3  vertices  in the contour(It should be a triangle)
-        if (result->total == 3)
+        while (contours)
         {
-            //iterating through each point
-            CvPoint *pt[3];
-            for (int i = 0; i < 3; i++)
+            //obtain a sequence of points of contour, pointed by the variable 'contour'
+            result = cvApproxPoly(contours, sizeof(CvContour), storage, CV_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.02, 0);
+
+            //if there are 3  vertices  in the contour(It should be a triangle)
+            if (shapetocolor == "triangle")
             {
-                pt[i] = (CvPoint *)cvGetSeqElem(result, i);
+                if (result->total == 3)
+                {
+                    //iterating through each point
+                    CvPoint *pt[3];
+                    for (int i = 0; i < 3; i++)
+                    {
+                        pt[i] = (CvPoint *)cvGetSeqElem(result, i);
+                    }
+
+                    //drawing lines around the triangle
+                    cvLine(img, *pt[0], *pt[1], usecolor, 4);
+                    cvLine(img, *pt[1], *pt[2], usecolor, 4);
+                    cvLine(img, *pt[2], *pt[0], usecolor, 4);
+                }
             }
-
-            //drawing lines around the triangle
-            cvLine(img, *pt[0], *pt[1], usecolor, 4);
-            cvLine(img, *pt[1], *pt[2], usecolor, 4);
-            cvLine(img, *pt[2], *pt[0], usecolor, 4);
-        }
-
-        //if there are 4 vertices in the contour(It should be a rectangle/square)
-        else if (result->total == 4)
-        {
-            //iterating through each point
-            CvPoint *pt[4];
-            for (int i = 0; i < 4; i++)
+            else if (shapetocolor == "rectangle")
             {
-                pt[i] = (CvPoint *)cvGetSeqElem(result, i);
+                //if there are 4 vertices in the contour(It should be a rectangle/square)
+
+                if (result->total == 4)
+                {
+                    //iterating through each point
+                    CvPoint *pt[4];
+                    for (int i = 0; i < 4; i++)
+                    {
+                        pt[i] = (CvPoint *)cvGetSeqElem(result, i);
+                    }
+
+                    //drawing lines around the rectangle/square
+                    cvLine(img, *pt[0], *pt[1], usecolor, 4);
+                    cvLine(img, *pt[1], *pt[2], usecolor, 4);
+                    cvLine(img, *pt[2], *pt[3], usecolor, 4);
+                    cvLine(img, *pt[3], *pt[0], usecolor, 4);
+                }
             }
-
-            //drawing lines around the rectangle/square
-            cvLine(img, *pt[0], *pt[1], usecolor, 4);
-            cvLine(img, *pt[1], *pt[2], usecolor, 4);
-            cvLine(img, *pt[2], *pt[3], usecolor, 4);
-            cvLine(img, *pt[3], *pt[0], usecolor, 4);
+            //obtain the next contour
+            contours = contours->h_next;
         }
-
-        //obtain the next contour
-        contours = contours->h_next;
     }
+
     // apply hough circles to find circles and draw a cirlce around it
-    cvCanny(imgGrayScale, imgCanny, 0, 0, 3);
-    CvSeq *circles = cvHoughCircles(imgCanny,
-                                    storage,
-                                    CV_HOUGH_GRADIENT,
-                                    2,
-                                    imgCanny->height / 2,
-                                    200,
-                                    100);
-
-    for (int i = 0; i < circles->total; i++)
+    if (shapetocolor == "circle")
     {
-        float *p = (float *)cvGetSeqElem(circles, i);
-        cvCircle(img, cvPoint(cvRound(p[0]), cvRound(p[1])),
-                 3, CV_RGB(0, 255, 0), -1, 8, 0);
-        cvCircle(img, cvPoint(cvRound(p[0]), cvRound(p[1])),
-                 cvRound(p[2]), CV_RGB(0, 255, 255), 3, 8, 0);
+        cvCanny(imgGrayScale, imgCanny, 0, 0, 3);
+        CvSeq *circles = cvHoughCircles(imgCanny,
+                                        storage,
+                                        CV_HOUGH_GRADIENT,
+                                        2,
+                                        imgCanny->height / 2,
+                                        200,
+                                        100);
+
+        for (int i = 0; i < circles->total; i++)
+        {
+            float *p = (float *)cvGetSeqElem(circles, i);
+            cvCircle(img, cvPoint(cvRound(p[0]), cvRound(p[1])),
+                     3, CV_RGB(0, 255, 0), -1, 8, 0);
+            cvCircle(img, cvPoint(cvRound(p[0]), cvRound(p[1])),
+                     cvRound(p[2]), CV_RGB(redval, greenval, blueval), 3, 8, 0);
+        }
     }
-    
+
     //saves image
     if (args.find("-o") == args.end())
     {
         cout << "No output file specified!" << endl;
     }
-    else 
+    else
     {
         string outputName = args["-o"] + ".png";
         Mat src;
@@ -182,7 +220,6 @@ int main(int argc, char *argv[])
         cvReleaseImage(&img);
         imwrite(outputName, src);
     }
-
 
     //cleaning up
     cvDestroyAllWindows();
