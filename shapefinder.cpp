@@ -11,10 +11,19 @@ using namespace std;
 map<string, string> args;
 void read_args(int argc, char *argv[]);
 
+bool isHex(string hexstr){
+    for (auto it = hexstr.begin(); it != hexstr.end(); it++){
+        if (!isxdigit(*it)){
+            return false;
+        }
+        
+    }
+    return true;
+}
+
 int main(int argc, char *argv[])
 {
     read_args(argc, argv);
-
     string imgPath = "images/" + args["-i"] + ".ppm";
     //cout << "" << imgPath.c_str() << endl;
     string hexstring = args["-c"];
@@ -31,20 +40,36 @@ int main(int argc, char *argv[])
             cout << "Hex should be 3 bytes, one byte each representing a color value" << endl;
             exit(1);
         }
-        cout << "You have inputed a proper hex value" << endl;
         int hexval = 0;
-        hexval = stoi(hexstring);
-        cout << hexval << endl;
-
-        //redval = ((hex >> 16) & 0xFF) / 255
-        //greenval = ((hex >> 8) & 0xFF) / 255
-        //blueval = (hex & 0xFF) / 255
+        string newhexstring = hexstring.substr(2);
+        string rhex = hexstring.substr(2,2);
+        string ghex = hexstring.substr(4,2);
+        string bhex = hexstring.substr(6);
+        bool validhex = isHex(newhexstring);
+        if (!validhex){
+            cout << "Ivalid Hex, Hex should only have values [0-9a-fA-F]" << endl;
+            exit(1);
+        }
+        cout << "You have inputed a valid hex" << endl;
+        stringstream strstream;
+        strstream << rhex;
+        strstream >> std::hex >> redval;
+        stringstream().swap(strstream);
+        strstream << ghex;
+        strstream >> std::hex >> greenval;
+        stringstream().swap(strstream);
+        strstream << bhex;
+        strstream >> std::hex >> blueval;
+        
+        //redval = ((0xb6feaa >> 16) & 255) / 255;
+        //greenval = ((hexval >> 8) & 0xFF) / 255;
+        //blueval = (hexval & 0xFF) / 255;
         //cout << redval << endl;
         //cout << greenval << endl;
         //cout << blueval << endl;
-        redval = 100;
-        greenval = 200;
-        blueval = 100;
+        //redval = 100;
+        //greenval = 200;
+        //blueval = 100;
         usecolor = cvScalar(redval, greenval, blueval);
     } else if (hexstring == "blue"){
         usecolor = cvScalar(255, 0, 0);
