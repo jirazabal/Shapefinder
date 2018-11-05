@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
         //redval = 100;
         //greenval = 200;
         //blueval = 100;
-        usecolor = cvScalar(redval, greenval, blueval);
+        usecolor = cvScalar(blueval, greenval, redval);
     }
     else if (hexstring == "blue")
     {
